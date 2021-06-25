@@ -1,10 +1,17 @@
 const { ApolloServer, gql } = require('apollo-server')
 
+const { v1: uuid } = require('uuid')
+
 let authors = [
     {
         name: 'Robert Martin',
         id: "afa51ab0-344d-11e9-a414-719c6709cf3e",
-        born: 1952,
+        born: 1952
+    },
+    {
+        name: 'God almighty',
+        id: "yha54ab1-344b-11e9-a414-719c6733cf3e",
+        born: 0000
     },
     {
         name: 'Martin Fowler',
@@ -41,6 +48,13 @@ let books = [
         author: 'Robert Martin',
         id: "afa5b6f5-344d-11e9-a414-719c6709cf3e",
         genres: ['agile', 'patterns', 'design']
+    },
+    {
+        title: 'Holy Bible',
+        published: 0070,
+        author: 'God almighty',
+        id: "sta5b6f4-346h-11r9-a416-718c6719cf3s",
+        genres: ['life', 'salvation']
     },
     {
         title: 'Refactoring, edition 2',
@@ -85,18 +99,31 @@ type Author {
     id: ID!
     born: Int
     bookCount: Int
-}
-type Book {
+  }
+  type Book {
     title: String!
-    published: Int!
+    published: Int
     author: String!
+    id: ID!
     genres: [String!]!
-}
+  }
   type Query {
-    authorCount: Int!
-    bookCount: Int!
-    allBooks(author: String, genre: String): [Book]
-    allAuthors: [Author!]!
+bookCount: Int!
+authorCount: Int!
+allAuthors: [Author!]! 
+allBooks(author: String, genre: String): [Book]
+  }
+  type Mutation {
+    addBook(
+        title: String!
+        author: String!
+        published: Int!
+        genres: [String!]!
+    ): Book,
+    editAuthor(
+        name: String!,
+        setBornTo: Int!
+    ): Author
   }
 `
 
@@ -104,6 +131,13 @@ const resolvers = {
     Query: {
         authorCount: () => authors.length,
         bookCount: () => books.length,
+        allAuthors: () => {
+            return authors.map(author => {
+                const authorsBooks = books.filter(b => b.author === author.name)
+                return { ...author, bookCount: authorsBooks.length }
+            })
+        },
+
         allBooks: (root, args) => {
             if (args.author && args.genre) {
                 const filtered = books.filter(book => book.author === args.author)
@@ -119,13 +153,35 @@ const resolvers = {
             }
             else //If no parameter return all books
                 return books
+        }
+    },
+    Mutation: {
+        addBook: (root, args) => {
+            const book = { ...args, id: uuid() }
+            books = books.concat(book)
+
+            const existingAuthor = authors.find(a => a.name === args.author)
+            if (!existingAuthor) {
+                authors = authors.concat({
+                    name: args.author,
+                    id: uuid()
+                })
+            }
+            return book
         },
-        allAuthors: () => {
-            return authors.map(author => {
-                const authorsBooks = books.filter(b => b.author === author.name)
-                return { ...author, bookCount: authorsBooks.length }
+        editAuthor: (root, args) => {
+            const year = args.setBornTo
+            const authorToChange = authors.find(a => a.name === args.name)
+
+            if (!authorToChange) {
+                return null
+            }
+            authorToChange.born = year
+            authors = authors.map(a => {
+                return a.id === authorToChange.id ? authorToChange : a
             })
-        },
+            return authorToChange
+        }
     }
 }
 
