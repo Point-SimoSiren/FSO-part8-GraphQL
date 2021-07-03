@@ -246,9 +246,9 @@ const server = new ApolloServer({
 })
 
 server.listen().then(({ url }) => {
-    setTimeout(() => { console.log('\x1b[33m%s\x1b[0m', 'Hey!') }, 3000)
-    setTimeout(() => { console.log('\x1b[33m%s\x1b[0m', 'Scroll up to see sample queries for this service') }, 3000)
+    setTimeout(() => { console.log('\x1b[33m%s\x1b[0m', 'Hey!') }, 2000)
+    setTimeout(() => { console.log('\x1b[33m%s\x1b[0m', `Scroll up to see sample queries for this service.` + '\r\n' + `**Samples are outdated at the moment because of authentication!**`) }, 2000)
 
-    setTimeout(() => { console.log(`\x1b[36m%s\x1b[0m`, `Try queries on ${url}`) }, 4000)
+    setTimeout(() => { console.log(`\x1b[36m%s\x1b[0m`, `Try queries on ${url}`) }, 3000)
 
 })
